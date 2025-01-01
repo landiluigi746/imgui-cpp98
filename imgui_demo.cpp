@@ -314,8 +314,12 @@ static ExampleTreeNode* ExampleTree_CreateNode(const char* name, int uid, Exampl
 
 static void ExampleTree_DestroyNode(ExampleTreeNode* node)
 {
-    for (ExampleTreeNode* child_node : node->Childs)
+    ExampleTreeNode** end = node->Childs.end();
+    for (ExampleTreeNode** it = node->Childs.begin(); it != end; ++it)
+    {
+        ExampleTreeNode* child_node = *it;
         ExampleTree_DestroyNode(child_node);
+    }
     IM_DELETE(node);
 }
 
@@ -2719,7 +2723,7 @@ static void ShowDemoWindowWidgets(ImGuiDemoWindowData* demo_data)
                 }
 
                 // Drop source
-                static ImVec4 col4 = { 1.0f, 0.0f, 0.2f, 1.0f };
+                static ImVec4 col4 = (ImVec4){ 1.0f, 0.0f, 0.2f, 1.0f };
                 if (n == 0)
                     ImGui::ColorButton("drag me", col4);
 
@@ -3038,8 +3042,12 @@ struct ExampleDualListBox
     void MoveAll(int src, int dst)
     {
         IM_ASSERT((src == 0 && dst == 1) || (src == 1 && dst == 0));
-        for (ImGuiID item_id : Items[src])
+        ImGuiID* end = Items[src].end();
+        for (ImGuiID* it = Items[src].begin(); it != end; ++it)
+        {
+            ImGuiID item_id = *it;
             Items[dst].push_back(item_id);
+        }
         Items[src].clear();
         SortItems(dst);
         Selections[src].Swap(Selections[dst]);
@@ -3150,7 +3158,7 @@ struct ExampleDualListBox
             ImGui::TableSetColumnIndex(1);
             ImGui::NewLine();
             //ImVec2 button_sz = { ImGui::CalcTextSize(">>").x + ImGui::GetStyle().FramePadding.x * 2.0f, ImGui::GetFrameHeight() + padding.y * 2.0f };
-            ImVec2 button_sz = { ImGui::GetFrameHeight(), ImGui::GetFrameHeight() };
+            ImVec2 button_sz = (ImVec2){ ImGui::GetFrameHeight(), ImGui::GetFrameHeight() };
 
             // (Using BeginDisabled()/EndDisabled() works but feels distracting given how it is currently visualized)
             if (ImGui::Button(">>", button_sz))
@@ -3571,8 +3579,12 @@ static void ShowDemoWindowMultiSelect(ImGuiDemoWindowData* demo_data)
                     ImGui::SetNextItemStorageID((ImGuiID)node->UID);
                     if (ImGui::TreeNodeEx(node->Name, tree_node_flags))
                     {
-                        for (ExampleTreeNode* child : node->Childs)
+                        ExampleTreeNode** end = node->Childs.end();
+                        for (ExampleTreeNode** it = node->Childs.begin(); it != end; ++it)
+                        {
+                            ExampleTreeNode* child = *it;
                             DrawNode(child, selection);
+                        }
                         ImGui::TreePop();
                     }
                     else if (ImGui::IsItemToggledOpen())
@@ -3600,8 +3612,12 @@ static void ShowDemoWindowMultiSelect(ImGuiDemoWindowData* demo_data)
                     int unselected_count = selection->Contains((ImGuiID)node->UID) ? 1 : 0;
                     if (depth == 0 || TreeNodeGetOpen(node))
                     {
-                        for (ExampleTreeNode* child : node->Childs)
+                        ExampleTreeNode** end = node->Childs.end();
+                        for (ExampleTreeNode** it = node->Childs.begin(); it != end; ++it)
+                        {
+                            ExampleTreeNode* child = *it;
                             unselected_count += TreeCloseAndUnselectChildNodes(child, selection, depth + 1);
+                        }
                         TreeNodeSetOpen(node, false);
                     }
 
@@ -3613,8 +3629,10 @@ static void ShowDemoWindowMultiSelect(ImGuiDemoWindowData* demo_data)
                 // Apply multi-selection requests
                 static void ApplySelectionRequests(ImGuiMultiSelectIO* ms_io, ExampleTreeNode* tree, ImGuiSelectionBasicStorage* selection)
                 {
-                    for (ImGuiSelectionRequest& req : ms_io->Requests)
+                    ImGuiSelectionRequest* end = ms_io->Requests.end();
+                    for (ImGuiSelectionRequest* it = ms_io->Requests.begin(); it != end; ++it)
                     {
+                        ImGuiSelectionRequest& req = *it;
                         if (req.Type == ImGuiSelectionRequestType_SetAll)
                         {
                             if (req.Selected)
@@ -3637,8 +3655,14 @@ static void ShowDemoWindowMultiSelect(ImGuiDemoWindowData* demo_data)
                     if (node->Parent != NULL) // Root node isn't visible nor selectable in our scheme
                         selection->SetItemSelected((ImGuiID)node->UID, selected);
                     if (node->Parent == NULL || TreeNodeGetOpen(node))
-                        for (ExampleTreeNode* child : node->Childs)
+                    {
+                        ExampleTreeNode** end = node->Childs.end();
+                        for (ExampleTreeNode** it = node->Childs.begin(); it != end; ++it)
+                        {
+                            ExampleTreeNode* child = *it;
                             TreeSetAllInOpenNodes(child, selection, selected);
+                        }
+                    }
                 }
 
                 // Interpolate in *user-visible order* AND only *over opened nodes*.
@@ -3682,8 +3706,12 @@ static void ShowDemoWindowMultiSelect(ImGuiDemoWindowData* demo_data)
                 ImGuiMultiSelectFlags ms_flags = ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_BoxSelect2d;
                 ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(ms_flags, selection.Size, -1);
                 ExampleTreeFuncs::ApplySelectionRequests(ms_io, tree, &selection);
-                for (ExampleTreeNode* node : tree->Childs)
+                ExampleTreeNode** end = tree->Childs.end();
+                for (ExampleTreeNode** it = tree->Childs.begin(); it != end; ++it)
+                {
+                    ExampleTreeNode* node = *it;
                     ExampleTreeFuncs::DrawNode(node, &selection);
+                }
                 ms_io = ImGui::EndMultiSelect();
                 ExampleTreeFuncs::ApplySelectionRequests(ms_io, tree, &selection);
             }
@@ -7844,8 +7872,10 @@ void ImGui::ShowFontSelector(const char* label)
     ImFont* font_current = ImGui::GetFont();
     if (ImGui::BeginCombo(label, font_current->GetDebugName()))
     {
-        for (ImFont* font : io.Fonts->Fonts)
+        ImFont** end = io.Fonts->Fonts.end();
+        for (ImFont** it = io.Fonts->Fonts.begin(); it != end; ++it)
         {
+            ImFont* font = *it;
             ImGui::PushID((void*)font);
             if (ImGui::Selectable(font->GetDebugName(), font == font_current))
                 io.FontDefault = font;
@@ -8470,8 +8500,10 @@ struct ExampleAppConsole
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
             if (copy_to_clipboard)
                 ImGui::LogToClipboard();
-            for (const char* item : Items)
+            const char** end = (const char**)Items.end();
+            for (const char** it = (const char**)Items.begin(); it != end; ++it)
             {
+                const char* item = *it;
                 if (!Filter.PassFilter(item))
                     continue;
 
@@ -8937,9 +8969,13 @@ struct ExampleAppPropertyEditor
 
             if (ImGui::BeginTable("##bg", 1, ImGuiTableFlags_RowBg))
             {
-                for (ExampleTreeNode* node : root_node->Childs)
+                ExampleTreeNode** end = root_node->Childs.end();
+                for (ExampleTreeNode** it = root_node->Childs.begin(); it != end; ++it)
+                {
+                    ExampleTreeNode* node = *it;
                     if (Filter.PassFilter(node->Name)) // Filter root node
                         DrawTreeNode(node);
+                }
                 ImGui::EndTable();
             }
         }
@@ -8963,8 +8999,10 @@ struct ExampleAppPropertyEditor
                     // In a typical application, the structure description would be derived from a data-driven system.
                     // - We try to mimic this with our ExampleMemberInfo structure and the ExampleTreeNodeMemberInfos[] array.
                     // - Limits and some details are hard-coded to simplify the demo.
-                    for (const ExampleMemberInfo& field_desc : ExampleTreeNodeMemberInfos)
+                    
+                    for (size_t i = 0; i < IM_ARRAYSIZE(ExampleTreeNodeMemberInfos); ++i)
                     {
+                        const ExampleMemberInfo& field_desc = ExampleTreeNodeMemberInfos[i];
                         ImGui::TableNextRow();
                         ImGui::PushID(field_desc.Name);
                         ImGui::TableNextColumn();
@@ -9025,8 +9063,12 @@ struct ExampleAppPropertyEditor
             VisibleNode = node;
         if (node_open)
         {
-            for (ExampleTreeNode* child : node->Childs)
+            ExampleTreeNode** end = node->Childs.end();
+            for (ExampleTreeNode** it = node->Childs.begin(); it != end; ++it)
+            {
+                ExampleTreeNode* child = *it;
                 DrawTreeNode(child);
+            }
             ImGui::TreePop();
         }
         ImGui::PopID();
@@ -9374,9 +9416,12 @@ static void ShowExampleAppWindowTitles(bool*)
 // Add a |_| looking shape
 static void PathConcaveShape(ImDrawList* draw_list, float x, float y, float sz)
 {
-    const ImVec2 pos_norms[] = { { 0.0f, 0.0f }, { 0.3f, 0.0f }, { 0.3f, 0.7f }, { 0.7f, 0.7f }, { 0.7f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
-    for (const ImVec2& p : pos_norms)
+    const ImVec2 pos_norms[] = { (ImVec2){ 0.0f, 0.0f }, (ImVec2){ 0.3f, 0.0f }, (ImVec2){ 0.3f, 0.7f }, (ImVec2){ 0.7f, 0.7f }, (ImVec2){ 0.7f, 0.0f }, (ImVec2){ 1.0f, 0.0f }, (ImVec2){ 1.0f, 1.0f }, (ImVec2){ 0.0f, 1.0f } };
+    for (size_t i = 0; i < IM_ARRAYSIZE(pos_norms); ++i)
+    {
+        const ImVec2& p = pos_norms[i];
         draw_list->PathLineTo(ImVec2(x + 0.5f + (int)(sz * p.x), y + 0.5f + (int)(sz * p.y)));
+    }
 }
 
 // Demonstrate using the low-level ImDrawList to draw custom shapes.
@@ -9792,8 +9837,10 @@ struct ExampleAppDocuments
     // Note that this completely optional, and only affect tab bars with the ImGuiTabBarFlags_Reorderable flag.
     void NotifyOfDocumentsClosedElsewhere()
     {
-        for (MyDocument& doc : Documents)
+        MyDocument* end = Documents.end();
+        for (MyDocument* it = Documents.begin(); it != end; ++it)
         {
+            MyDocument& doc = *it;
             if (!doc.Open && doc.OpenPrev)
                 ImGui::SetTabItemClosed(doc.Name);
             doc.OpenPrev = doc.Open;
@@ -9822,19 +9869,33 @@ void ShowExampleAppDocuments(bool* p_open)
         if (ImGui::BeginMenu("File"))
         {
             int open_count = 0;
-            for (MyDocument& doc : app.Documents)
+            MyDocument* documentsEnd = app.Documents.end();
+            for (MyDocument* documentsIt = app.Documents.begin(); documentsIt != documentsEnd; ++documentsIt)
+            {
+                MyDocument& doc = *documentsIt;
                 open_count += doc.Open ? 1 : 0;
+            }
 
             if (ImGui::BeginMenu("Open", open_count < app.Documents.Size))
             {
-                for (MyDocument& doc : app.Documents)
+                documentsEnd = app.Documents.end();
+                for (MyDocument* documentsIt = app.Documents.begin(); documentsIt != documentsEnd; ++documentsIt)
+                {
+                    MyDocument& doc = *documentsIt;
                     if (!doc.Open && ImGui::MenuItem(doc.Name))
                         doc.DoOpen();
+                }
                 ImGui::EndMenu();
             }
             if (ImGui::MenuItem("Close All Documents", NULL, false, open_count > 0))
-                for (MyDocument& doc : app.Documents)
+            {
+                documentsEnd = app.Documents.end();
+                for (MyDocument* documentsIt = app.Documents.begin(); documentsIt != documentsEnd; ++documentsIt)
+                {
+                    MyDocument& doc = *documentsIt;
                     app.CloseQueue.push_back(&doc);
+                }
+            }
             if (ImGui::MenuItem("Exit") && p_open)
                 *p_open = false;
             ImGui::EndMenu();
@@ -9881,8 +9942,10 @@ void ShowExampleAppDocuments(bool* p_open)
             //if (ImGui::GetIO().KeyCtrl) ImGui::SetTabItemSelected(docs[1].Name);  // [DEBUG] Test SetTabItemSelected(), probably not very useful as-is anyway..
 
             // Submit Tabs
-            for (MyDocument& doc : app.Documents)
+            MyDocument* documentsEnd = app.Documents.end();
+            for (MyDocument* documentsIt = app.Documents.begin(); documentsIt != documentsEnd; ++documentsIt)
             {
+                MyDocument& doc = *documentsIt;
                 if (!doc.Open)
                     continue;
 
@@ -9959,16 +10022,24 @@ void ShowExampleAppDocuments(bool* p_open)
                 ImGui::Text("Save change to the following items?");
                 float item_height = ImGui::GetTextLineHeightWithSpacing();
                 if (ImGui::BeginChild(ImGui::GetID("frame"), ImVec2(-FLT_MIN, 6.25f * item_height), ImGuiChildFlags_FrameStyle))
-                    for (MyDocument* doc : app.CloseQueue)
+                {
+                    MyDocument** closeQueueEnd = app.CloseQueue.end();
+                    for (MyDocument** closeQueueIt = app.CloseQueue.begin(); closeQueueIt != closeQueueEnd; ++closeQueueIt)
+                    {
+                        MyDocument* doc = *closeQueueIt;
                         if (doc->Dirty)
                             ImGui::Text("%s", doc->Name);
+                    }
+                }
                 ImGui::EndChild();
 
                 ImVec2 button_size(ImGui::GetFontSize() * 7.0f, 0.0f);
                 if (ImGui::Button("Yes", button_size))
                 {
-                    for (MyDocument* doc : app.CloseQueue)
+                    MyDocument** closeQueueEnd = app.CloseQueue.end();
+                    for (MyDocument** closeQueueIt = app.CloseQueue.begin(); closeQueueIt != closeQueueEnd; ++closeQueueIt)
                     {
+                        MyDocument* doc = *closeQueueIt;
                         if (doc->Dirty)
                             doc->DoSave();
                         doc->DoForceClose();
@@ -9979,8 +10050,12 @@ void ShowExampleAppDocuments(bool* p_open)
                 ImGui::SameLine();
                 if (ImGui::Button("No", button_size))
                 {
-                    for (MyDocument* doc : app.CloseQueue)
+                    MyDocument** closeQueueEnd = app.CloseQueue.end();
+                    for (MyDocument** closeQueueIt = app.CloseQueue.begin(); closeQueueIt != closeQueueEnd; ++closeQueueIt)
+                    {
+                        MyDocument* doc = *closeQueueIt;
                         doc->DoForceClose();
+                    }
                     app.CloseQueue.clear();
                     ImGui::CloseCurrentPopup();
                 }

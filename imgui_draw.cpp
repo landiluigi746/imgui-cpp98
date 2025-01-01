@@ -2259,9 +2259,15 @@ void ImGui::AddDrawListToDrawDataEx(ImDrawData* draw_data, ImVector<ImDrawList*>
 
     // Resolve callback data pointers
     if (draw_list->_CallbacksDataBuf.Size > 0)
-        for (ImDrawCmd& cmd : draw_list->CmdBuffer)
+    {
+        ImDrawCmd* end = draw_list->CmdBuffer.end();
+        for (ImDrawCmd* it = draw_list->CmdBuffer.begin(); it != end; ++it)
+        {
+            ImDrawCmd& cmd = *it;
             if (cmd.UserCallback != NULL && cmd.UserCallbackDataOffset != -1 && cmd.UserCallbackDataSize > 0)
                 cmd.UserCallbackData = draw_list->_CallbacksDataBuf.Data + cmd.UserCallbackDataOffset;
+        }
+    }
 
     // Add to output list + records state in ImDrawData
     out_list->push_back(draw_list);
@@ -2301,9 +2307,17 @@ void ImDrawData::DeIndexAllBuffers()
 // or if there is a difference between your window resolution and framebuffer resolution.
 void ImDrawData::ScaleClipRects(const ImVec2& fb_scale)
 {
-    for (ImDrawList* draw_list : CmdLists)
-        for (ImDrawCmd& cmd : draw_list->CmdBuffer)
+    ImDrawList** endLists = CmdLists.end();
+    for (ImDrawList** drawListIt = CmdLists.begin(); drawListIt != endLists; ++drawListIt)
+    {
+        ImDrawList* draw_list = *drawListIt;
+        ImDrawCmd* bufferEnd = draw_list->CmdBuffer.end();
+        for (ImDrawCmd* bufferIt = draw_list->CmdBuffer.begin(); bufferIt != bufferEnd; ++bufferIt)
+        {
+            ImDrawCmd& cmd = *bufferIt;
             cmd.ClipRect = ImVec4(cmd.ClipRect.x * fb_scale.x, cmd.ClipRect.y * fb_scale.y, cmd.ClipRect.z * fb_scale.x, cmd.ClipRect.w * fb_scale.y);
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -2485,20 +2499,29 @@ ImFontAtlas::~ImFontAtlas()
 void    ImFontAtlas::ClearInputData()
 {
     IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
-    for (ImFontConfig& font_cfg : ConfigData)
+    ImFontConfig* endCfg = ConfigData.end();
+    for (ImFontConfig* it = ConfigData.begin(); it != endCfg; ++it)
+    {
+        ImFontConfig& font_cfg = *it;
         if (font_cfg.FontData && font_cfg.FontDataOwnedByAtlas)
         {
             IM_FREE(font_cfg.FontData);
             font_cfg.FontData = NULL;
         }
+    }
 
     // When clearing this we lose access to the font name and other information used to build the font.
-    for (ImFont* font : Fonts)
+    ImFont** endFnts = Fonts.end();
+    for (ImFont** it = Fonts.begin(); it != endFnts; ++it)
+    {
+        ImFont* font = *it;
         if (font->ConfigData >= ConfigData.Data && font->ConfigData < ConfigData.Data + ConfigData.Size)
         {
             font->ConfigData = NULL;
             font->ConfigDataCount = 0;
         }
+    }
+    
     ConfigData.clear();
     CustomRects.clear();
     PackIdMouseCursors = PackIdLines = -1;
@@ -3136,8 +3159,10 @@ const ImFontBuilderIO* ImFontAtlasGetBuilderForStbTruetype()
 
 void ImFontAtlasUpdateConfigDataPointers(ImFontAtlas* atlas)
 {
-    for (ImFontConfig& font_cfg : atlas->ConfigData)
+    ImFontConfig* end = atlas->ConfigData.end();
+    for (ImFontConfig* it = atlas->ConfigData.begin(); it != end; ++it)
     {
+        ImFontConfig& font_cfg = *it;
         ImFont* font = font_cfg.DstFont;
         if (!font_cfg.MergeMode)
         {
@@ -3349,9 +3374,14 @@ void ImFontAtlasBuildFinish(ImFontAtlas* atlas)
     }
 
     // Build all fonts lookup tables
-    for (ImFont* font : atlas->Fonts)
+    ImFont** end = atlas->Fonts.end();
+    for (ImFont** it = atlas->Fonts.begin(); it != end; ++it)
+    {
+        ImFont* font = *it;
+        
         if (font->DirtyLookupTables)
             font->BuildLookupTable();
+    }
 
     atlas->TexReady = true;
 }

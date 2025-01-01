@@ -3986,8 +3986,9 @@ static bool ImCharIsSeparatorW(unsigned int c)
         '[', 0x300C, ']', 0x300D, '|', 0xFF5C, '!', 0xFF01, '\\', 0xFFE5, '/', 0x30FB, 0xFF0F,
         '\n', '\r',
     };
-    for (unsigned int separator : separator_list)
-        if (c == separator)
+
+    for (size_t i = 0; i < IM_ARRAYSIZE(separator_list); ++i)
+        if (c == separator_list[i])
             return true;
     return false;
 }
@@ -4600,17 +4601,22 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         // Declare some inputs, the other are registered and polled via Shortcut() routing system.
         // FIXME: The reason we don't use Shortcut() is we would need a routing flag to specify multiple mods, or to all mods combinaison into individual shortcuts.
         const ImGuiKey always_owned_keys[] = { ImGuiKey_LeftArrow, ImGuiKey_RightArrow, ImGuiKey_Enter, ImGuiKey_KeypadEnter, ImGuiKey_Delete, ImGuiKey_Backspace, ImGuiKey_Home, ImGuiKey_End };
-        for (ImGuiKey key : always_owned_keys)
-            SetKeyOwner(key, id);
+
+        for (size_t i = 0; i < IM_ARRAYSIZE(always_owned_keys); ++i)
+            SetKeyOwner(always_owned_keys[i], id);
+        
         if (user_clicked)
             SetKeyOwner(ImGuiKey_MouseLeft, id);
+        
         g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+        
         if (is_multiline || (flags & ImGuiInputTextFlags_CallbackHistory))
         {
             g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Up) | (1 << ImGuiDir_Down);
             SetKeyOwner(ImGuiKey_UpArrow, id);
             SetKeyOwner(ImGuiKey_DownArrow, id);
         }
+        
         if (is_multiline)
         {
             SetKeyOwner(ImGuiKey_PageUp, id);
@@ -7142,8 +7148,11 @@ ImGuiTypingSelectRequest* ImGui::GetTypingSelectRequest(ImGuiTypingSelectFlags f
     const int buffer_max_len = IM_ARRAYSIZE(data->SearchBuffer) - 1;
     int buffer_len = (int)strlen(data->SearchBuffer);
     bool select_request = false;
-    for (ImWchar w : g.IO.InputQueueCharacters)
+
+    ImWchar* end = g.IO.InputQueueCharacters.end();
+    for (ImWchar* it = g.IO.InputQueueCharacters.begin(); it != end; ++it)
     {
+        ImWchar w = *it;
         const int w_len = ImTextCountUtf8BytesFromStr(&w, &w + 1);
         if (w < 32 || (buffer_len == 0 && ImCharIsBlankW(w)) || (buffer_len + w_len > buffer_max_len)) // Ignore leading blanks
             continue;
@@ -7465,8 +7474,11 @@ static void DebugLogMultiSelectRequests(const char* function, const ImGuiMultiSe
 {
     ImGuiContext& g = *GImGui;
     IM_UNUSED(function);
-    for (const ImGuiSelectionRequest& req : io->Requests)
+
+    const ImGuiSelectionRequest* end = io->Requests.end();
+    for (const ImGuiSelectionRequest* it = io->Requests.begin(); it != end; ++it)
     {
+        const ImGuiSelectionRequest& req = *it;
         if (req.Type == ImGuiSelectionRequestType_SetAll)    IMGUI_DEBUG_LOG_SELECTION("[selection] %s: Request: SetAll %d (= %s)\n", function, req.Selected, req.Selected ? "SelectAll" : "Clear");
         if (req.Type == ImGuiSelectionRequestType_SetRange)  IMGUI_DEBUG_LOG_SELECTION("[selection] %s: Request: SetRange %" IM_PRId64 "..%" IM_PRId64 " (0x%" IM_PRIX64 "..0x%" IM_PRIX64 ") = %d (dir %d)\n", function, req.RangeFirstItem, req.RangeLastItem, req.RangeFirstItem, req.RangeLastItem, req.Selected, req.RangeDirection);
     }
@@ -8162,8 +8174,10 @@ void ImGuiSelectionBasicStorage::ApplyRequests(ImGuiMultiSelectIO* ms_io)
     // FIXME-OPT: For each block of consecutive SetRange request:
     // - add all requests to a sorted list, store ID, selected, offset in ImGuiStorage.
     // - rewrite sorted storage a single time.
-    for (ImGuiSelectionRequest& req : ms_io->Requests)
+    ImGuiSelectionRequest* end = ms_io->Requests.end();
+    for (ImGuiSelectionRequest* it = ms_io->Requests.begin(); it != end; ++it)
     {
+        ImGuiSelectionRequest& req = *it;
         if (req.Type == ImGuiSelectionRequestType_SetAll)
         {
             Clear();
@@ -8217,8 +8231,11 @@ ImGuiSelectionExternalStorage::ImGuiSelectionExternalStorage()
 void ImGuiSelectionExternalStorage::ApplyRequests(ImGuiMultiSelectIO* ms_io)
 {
     IM_ASSERT(AdapterSetItemSelected);
-    for (ImGuiSelectionRequest& req : ms_io->Requests)
+
+    ImGuiSelectionRequest* end = ms_io->Requests.end();
+    for (ImGuiSelectionRequest* it = ms_io->Requests.begin(); it != end; ++it)
     {
+        ImGuiSelectionRequest& req = *it;
         if (req.Type == ImGuiSelectionRequestType_SetAll)
             for (int idx = 0; idx < ms_io->ItemsCount; idx++)
                 AdapterSetItemSelected(this, idx, req.Selected);

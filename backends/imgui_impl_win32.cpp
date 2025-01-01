@@ -29,7 +29,7 @@
 //  2023-04-04: Inputs: Added support for io.AddMouseSourceEvent() to discriminate ImGuiMouseSource_Mouse/ImGuiMouseSource_TouchScreen/ImGuiMouseSource_Pen. (#2702)
 //  2023-02-15: Inputs: Use WM_NCMOUSEMOVE / WM_NCMOUSELEAVE to track mouse position over non-client area (e.g. OS decorations) when app is not focused. (#6045, #6162)
 //  2023-02-02: Inputs: Flipping WM_MOUSEHWHEEL (horizontal mouse-wheel) value to match other backends and offer consistent horizontal scrolling direction. (#4019, #6096, #1463)
-//  2022-10-11: Using 'nullptr' instead of 'NULL' as per our switch to C++11.
+//  2022-10-11: Using 'NULL' instead of 'NULL' as per our switch to C++11.
 //  2022-09-28: Inputs: Convert WM_CHAR values with MultiByteToWideChar() when window class was registered as MBCS (not Unicode).
 //  2022-09-26: Inputs: Renamed ImGuiKey_ModXXX introduced in 1.87 to ImGuiMod_XXX (old names still supported).
 //  2022-01-26: Inputs: replaced short-lived io.AddKeyModsEvent() (added two weeks ago) with io.AddKeyEvent() using ImGuiKey_ModXXX flags. Sorry for the confusion.
@@ -72,7 +72,7 @@
 //  2018-01-05: Inputs: Added WM_LBUTTONDBLCLK double-click handlers for window classes with the CS_DBLCLKS flag.
 //  2017-10-23: Inputs: Added WM_SYSKEYDOWN / WM_SYSKEYUP handlers so e.g. the VK_MENU key can be read.
 //  2017-10-23: Inputs: Using Win32 ::SetCapture/::GetCapture() to retrieve mouse positions outside the client area when dragging.
-//  2016-11-12: Inputs: Only call Win32 ::SetCursor(nullptr) when io.MouseDrawCursor is set.
+//  2016-11-12: Inputs: Only call Win32 ::SetCursor(NULL) when io.MouseDrawCursor is set.
 
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
@@ -131,7 +131,7 @@ struct ImGui_ImplWin32_Data
 // FIXME: some shared resources (mouse cursor shape, gamepad) are mishandled when using multi-context.
 static ImGui_ImplWin32_Data* ImGui_ImplWin32_GetBackendData()
 {
-    return ImGui::GetCurrentContext() ? (ImGui_ImplWin32_Data*)ImGui::GetIO().BackendPlatformUserData : nullptr;
+    return ImGui::GetCurrentContext() ? (ImGui_ImplWin32_Data*)ImGui::GetIO().BackendPlatformUserData : NULL;
 }
 static ImGui_ImplWin32_Data* ImGui_ImplWin32_GetBackendData(ImGuiIO& io)
 {
@@ -153,7 +153,7 @@ static bool ImGui_ImplWin32_InitEx(void* hwnd, bool platform_has_own_dc)
 {
     ImGuiIO& io = ImGui::GetIO();
     IMGUI_CHECKVERSION();
-    IM_ASSERT(io.BackendPlatformUserData == nullptr && "Already initialized a platform backend!");
+    IM_ASSERT(io.BackendPlatformUserData == NULL && "Already initialized a platform backend!");
 
     INT64 perf_frequency, perf_counter;
     if (!::QueryPerformanceFrequency((LARGE_INTEGER*)&perf_frequency))
@@ -217,7 +217,7 @@ IMGUI_IMPL_API bool     ImGui_ImplWin32_InitForOpenGL(void* hwnd)
 void    ImGui_ImplWin32_Shutdown()
 {
     ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData();
-    IM_ASSERT(bd != nullptr && "No platform backend to shutdown, or already shutdown?");
+    IM_ASSERT(bd != NULL && "No platform backend to shutdown, or already shutdown?");
     ImGuiIO& io = ImGui::GetIO();
 
     // Unload XInput library
@@ -226,8 +226,8 @@ void    ImGui_ImplWin32_Shutdown()
         ::FreeLibrary(bd->XInputDLL);
 #endif // IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
 
-    io.BackendPlatformName = nullptr;
-    io.BackendPlatformUserData = nullptr;
+    io.BackendPlatformName = NULL;
+    io.BackendPlatformUserData = NULL;
     io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad);
     IM_DELETE(bd);
 }
@@ -240,7 +240,7 @@ static bool ImGui_ImplWin32_UpdateMouseCursor(ImGuiIO& io, ImGuiMouseCursor imgu
     if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
     {
         // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-        ::SetCursor(nullptr);
+        ::SetCursor(NULL);
     }
     else
     {
@@ -258,7 +258,7 @@ static bool ImGui_ImplWin32_UpdateMouseCursor(ImGuiIO& io, ImGuiMouseCursor imgu
         case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
         case ImGuiMouseCursor_NotAllowed:   win32_cursor = IDC_NO; break;
         }
-        ::SetCursor(::LoadCursor(nullptr, win32_cursor));
+        ::SetCursor(::LoadCursor(NULL, win32_cursor));
     }
     return true;
 }
@@ -346,7 +346,7 @@ static void ImGui_ImplWin32_UpdateGamepads(ImGuiIO& io)
     io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
     XINPUT_STATE xinput_state;
     XINPUT_GAMEPAD& gamepad = xinput_state.Gamepad;
-    if (!bd->HasGamepad || bd->XInputGetState == nullptr || bd->XInputGetState(0, &xinput_state) != ERROR_SUCCESS)
+    if (!bd->HasGamepad || bd->XInputGetState == NULL || bd->XInputGetState(0, &xinput_state) != ERROR_SUCCESS)
         return;
     io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
 
@@ -387,7 +387,7 @@ static void ImGui_ImplWin32_UpdateGamepads(ImGuiIO& io)
 void    ImGui_ImplWin32_NewFrame()
 {
     ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData();
-    IM_ASSERT(bd != nullptr && "Context or backend not initialized? Did you call ImGui_ImplWin32_Init()?");
+    IM_ASSERT(bd != NULL && "Context or backend not initialized? Did you call ImGui_ImplWin32_Init()?");
     ImGuiIO& io = ImGui::GetIO();
 
     // Setup display size (every frame to accommodate for window resizing)
@@ -587,8 +587,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hWnd, UINT m
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     // Most backends don't have silent checks like this one, but we need it because WndProc are called early in CreateWindow().
-    // We silently allow both context or just only backend data to be nullptr.
-    if (ImGui::GetCurrentContext() == nullptr)
+    // We silently allow both context or just only backend data to be NULL.
+    if (ImGui::GetCurrentContext() == NULL)
         return 0;
     return ImGui_ImplWin32_WndProcHandlerEx(hwnd, msg, wParam, lParam, ImGui::GetIO());
 }
@@ -597,7 +597,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARA
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, ImGuiIO& io)
 {
     ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData(io);
-    if (bd == nullptr)
+    if (bd == NULL)
         return 0;
     switch (msg)
     {
@@ -631,7 +631,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPA
         if (bd->MouseTrackedArea == area)
         {
             if (bd->MouseHwnd == hwnd)
-                bd->MouseHwnd = nullptr;
+                bd->MouseHwnd = NULL;
             bd->MouseTrackedArea = 0;
             io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
         }
@@ -642,7 +642,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPA
         {
             TRACKMOUSEEVENT tme_cancel = { sizeof(tme_cancel), TME_CANCEL, hwnd, 0 };
             ::TrackMouseEvent(&tme_cancel);
-            bd->MouseHwnd = nullptr;
+            bd->MouseHwnd = NULL;
             bd->MouseTrackedArea = 0;
             io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
         }
@@ -658,7 +658,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPA
         if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) { button = 1; }
         if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) { button = 2; }
         if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
-        if (bd->MouseButtonsDown == 0 && ::GetCapture() == nullptr)
+        if (bd->MouseButtonsDown == 0 && ::GetCapture() == NULL)
             ::SetCapture(hwnd); // Allow us to read mouse coordinates when dragging mouse outside of our window bounds.
         bd->MouseButtonsDown |= 1 << button;
         io.AddMouseSourceEvent(mouse_source);
@@ -789,11 +789,11 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPA
 static BOOL _IsWindowsVersionOrGreater(WORD major, WORD minor, WORD)
 {
     typedef LONG(WINAPI* PFN_RtlVerifyVersionInfo)(OSVERSIONINFOEXW*, ULONG, ULONGLONG);
-    static PFN_RtlVerifyVersionInfo RtlVerifyVersionInfoFn = nullptr;
-	if (RtlVerifyVersionInfoFn == nullptr)
+    static PFN_RtlVerifyVersionInfo RtlVerifyVersionInfoFn = NULL;
+	if (RtlVerifyVersionInfoFn == NULL)
 		if (HMODULE ntdllModule = ::GetModuleHandleA("ntdll.dll"))
 			RtlVerifyVersionInfoFn = (PFN_RtlVerifyVersionInfo)GetProcAddress(ntdllModule, "RtlVerifyVersionInfo");
-    if (RtlVerifyVersionInfoFn == nullptr)
+    if (RtlVerifyVersionInfoFn == NULL)
         return FALSE;
 
     RTL_OSVERSIONINFOEXW versionInfo = { };
@@ -862,10 +862,10 @@ float ImGui_ImplWin32_GetDpiScaleForMonitor(void* monitor)
     if (_IsWindows8Point1OrGreater())
     {
 		static HINSTANCE shcore_dll = ::LoadLibraryA("shcore.dll"); // Reference counted per-process
-		static PFN_GetDpiForMonitor GetDpiForMonitorFn = nullptr;
-		if (GetDpiForMonitorFn == nullptr && shcore_dll != nullptr)
+		static PFN_GetDpiForMonitor GetDpiForMonitorFn = NULL;
+		if (GetDpiForMonitorFn == NULL && shcore_dll != NULL)
             GetDpiForMonitorFn = (PFN_GetDpiForMonitor)::GetProcAddress(shcore_dll, "GetDpiForMonitor");
-		if (GetDpiForMonitorFn != nullptr)
+		if (GetDpiForMonitorFn != NULL)
 		{
 			GetDpiForMonitorFn((HMONITOR)monitor, MDT_EFFECTIVE_DPI, &xdpi, &ydpi);
             IM_ASSERT(xdpi == ydpi); // Please contact me if you hit this assert!
@@ -873,11 +873,11 @@ float ImGui_ImplWin32_GetDpiScaleForMonitor(void* monitor)
 		}
     }
 #ifndef NOGDI
-    const HDC dc = ::GetDC(nullptr);
+    const HDC dc = ::GetDC(NULL);
     xdpi = ::GetDeviceCaps(dc, LOGPIXELSX);
     ydpi = ::GetDeviceCaps(dc, LOGPIXELSY);
     IM_ASSERT(xdpi == ydpi); // Please contact me if you hit this assert!
-    ::ReleaseDC(nullptr, dc);
+    ::ReleaseDC(NULL, dc);
 #endif
     return xdpi / 96.0f;
 }

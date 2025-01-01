@@ -2737,7 +2737,7 @@ static void ShowDemoWindowWidgets(ImGuiDemoWindowData* demo_data)
                 }
 
                 // Drop source
-                static ImVec4 col4 = (ImVec4){ 1.0f, 0.0f, 0.2f, 1.0f };
+                static ImVec4 col4 = ImVec4(1.0f, 0.0f, 0.2f, 1.0f);
                 if (n == 0)
                     ImGui::ColorButton("drag me", col4);
 
@@ -3176,7 +3176,7 @@ struct ExampleDualListBox
             ImGui::TableSetColumnIndex(1);
             ImGui::NewLine();
             //ImVec2 button_sz = { ImGui::CalcTextSize(">>").x + ImGui::GetStyle().FramePadding.x * 2.0f, ImGui::GetFrameHeight() + padding.y * 2.0f };
-            ImVec2 button_sz = (ImVec2){ ImGui::GetFrameHeight(), ImGui::GetFrameHeight() };
+            ImVec2 button_sz = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
 
             // (Using BeginDisabled()/EndDisabled() works but feels distracting given how it is currently visualized)
             if (ImGui::Button(">>", button_sz))
@@ -3211,7 +3211,7 @@ struct ExampleDualListBox
 
 // imgui-cpp98 //
 // define C++11 lambdas as static functions here
-static void ImGui_DemoMultiSelect_AdapterSetItemSelected(ImGuiSelectionExternalStorage* self, int n, bool selected) { bool* array = (bool*)self->UserData; array[n] = selected; };
+static void ImGui_DemoMultiSelect_AdapterSetItemSelected(ImGuiSelectionExternalStorage* self, int n, bool selected) { bool* array = (bool*)self->UserData; array[n] = selected; }
 
 //-----------------------------------------------------------------------------
 // [SECTION] ShowDemoWindowMultiSelect()
@@ -9444,7 +9444,7 @@ static void ShowExampleAppWindowTitles(bool*)
 // Add a |_| looking shape
 static void PathConcaveShape(ImDrawList* draw_list, float x, float y, float sz)
 {
-    const ImVec2 pos_norms[] = { (ImVec2){ 0.0f, 0.0f }, (ImVec2){ 0.3f, 0.0f }, (ImVec2){ 0.3f, 0.7f }, (ImVec2){ 0.7f, 0.7f }, (ImVec2){ 0.7f, 0.0f }, (ImVec2){ 1.0f, 0.0f }, (ImVec2){ 1.0f, 1.0f }, (ImVec2){ 0.0f, 1.0f } };
+    const ImVec2 pos_norms[] = { ImVec2(0.0f, 0.0f), ImVec2(0.3f, 0.0f), ImVec2(0.3f, 0.7f), ImVec2(0.7f, 0.7f), ImVec2(0.7f, 0.0f), ImVec2(1.0f, 0.0f), ImVec2(1.0f, 1.0f), ImVec2(0.0f, 1.0f) };
     for (size_t i = 0; i < IM_ARRAYSIZE(pos_norms); ++i)
     {
         const ImVec2& p = pos_norms[i];

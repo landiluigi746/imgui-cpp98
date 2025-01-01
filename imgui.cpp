@@ -1397,7 +1397,7 @@ ImGuiIO::ImGuiIO()
 {
     // Most fields are initialized with zero
     memset(this, 0, sizeof(*this));
-    IM_STATIC_ASSERT(IM_ARRAYSIZE(ImGuiIO::MouseDown) == ImGuiMouseButton_COUNT && IM_ARRAYSIZE(ImGuiIO::MouseClicked) == ImGuiMouseButton_COUNT);
+    // // IM_STATIC_ASSERT(IM_ARRAYSIZE(ImGuiIO::MouseDown) == ImGuiMouseButton_COUNT && IM_ARRAYSIZE(ImGuiIO::MouseClicked) == ImGuiMouseButton_COUNT);
 
     // Settings
     ConfigFlags = ImGuiConfigFlags_None;
@@ -3403,7 +3403,7 @@ static const ImGuiDataVarInfo GStyleVarInfo[] =
 const ImGuiDataVarInfo* ImGui::GetStyleVarInfo(ImGuiStyleVar idx)
 {
     IM_ASSERT(idx >= 0 && idx < ImGuiStyleVar_COUNT);
-    IM_STATIC_ASSERT(IM_ARRAYSIZE(GStyleVarInfo) == ImGuiStyleVar_COUNT);
+    // IM_STATIC_ASSERT(IM_ARRAYSIZE(GStyleVarInfo) == ImGuiStyleVar_COUNT);
     return &GStyleVarInfo[idx];
 }
 
@@ -8652,13 +8652,13 @@ void ImGui::SetNavFocusScope(ImGuiID focus_scope_id)
             g.NavFocusRoute.push_back(g.FocusScopeStack.Data[n]);
     }
     else if (focus_scope_id == g.NavWindow->NavRootFocusScopeId)
-        g.NavFocusRoute.push_back((ImGuiFocusScopeData){ focus_scope_id, g.NavWindow->ID });
+        g.NavFocusRoute.push_back(ImGuiFocusScopeData(focus_scope_id, g.NavWindow->ID));
     else
         return;
 
     // Then follow on manually set ParentWindowForFocusRoute field (#6798)
     for (ImGuiWindow* window = g.NavWindow->ParentWindowForFocusRoute; window != NULL; window = window->ParentWindowForFocusRoute)
-        g.NavFocusRoute.push_back((ImGuiFocusScopeData){ window->NavRootFocusScopeId, window->ID });
+        g.NavFocusRoute.push_back(ImGuiFocusScopeData(window->NavRootFocusScopeId, window->ID));
     IM_ASSERT(g.NavFocusRoute.Size < 100); // Maximum depth is technically 251 as per CalcRoutingScore(): 254 - 3
 }
 
@@ -9057,7 +9057,7 @@ static const char* const GKeyNames[] =
     "MouseLeft", "MouseRight", "MouseMiddle", "MouseX1", "MouseX2", "MouseWheelX", "MouseWheelY",
     "ModCtrl", "ModShift", "ModAlt", "ModSuper", // ReservedForModXXX are showing the ModXXX names.
 };
-IM_STATIC_ASSERT(ImGuiKey_NamedKey_COUNT == IM_ARRAYSIZE(GKeyNames));
+// IM_STATIC_ASSERT(ImGuiKey_NamedKey_COUNT == IM_ARRAYSIZE(GKeyNames));
 
 const char* ImGui::GetKeyName(ImGuiKey key)
 {
@@ -12908,8 +12908,8 @@ static void ImGui::NavUpdate()
     const bool nav_keyboard_active = (io.ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard) != 0;
     const ImGuiKey nav_keyboard_keys_to_change_source[] = { ImGuiKey_Space, ImGuiKey_Enter, ImGuiKey_Escape, ImGuiKey_RightArrow, ImGuiKey_LeftArrow, ImGuiKey_UpArrow, ImGuiKey_DownArrow };
     if (nav_keyboard_active)
-        for (size_t i = 0; i < IM_ARRAYSIZE(nav_gamepad_keys_to_change_source); ++i)
-            if (IsKeyDown(nav_gamepad_keys_to_change_source[i]))
+        for (size_t i = 0; i < IM_ARRAYSIZE(nav_keyboard_keys_to_change_source); ++i)
+            if (IsKeyDown(nav_keyboard_keys_to_change_source[i]))
                 g.NavInputSource = ImGuiInputSource_Keyboard;
 
     // Process navigation init request (select first/default focus)

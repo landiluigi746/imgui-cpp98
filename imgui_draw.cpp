@@ -1785,8 +1785,10 @@ struct ImTriangulatorNode
 
 struct ImTriangulatorNodeSpan
 {
-    ImTriangulatorNode**    Data = NULL;
-    int                     Size = 0;
+    ImTriangulatorNode**    Data;
+    int                     Size;
+
+    ImTriangulatorNodeSpan() : Data(NULL), Size(0) {}
 
     void    push_back(ImTriangulatorNode* node) { Data[Size++] = node; }
     void    find_erase_unsorted(int idx)        { for (int i = Size - 1; i >= 0; i--) if (Data[i]->Index == idx) { Data[i] = Data[Size - 1]; Size--; return; } }
@@ -1809,10 +1811,12 @@ struct ImTriangulator
     void    ReclassifyNode(ImTriangulatorNode* node);
 
     // Internal members
-    int                     _TrianglesLeft = 0;
-    ImTriangulatorNode*     _Nodes = NULL;
+    int                     _TrianglesLeft;
+    ImTriangulatorNode*     _Nodes;
     ImTriangulatorNodeSpan  _Ears;
     ImTriangulatorNodeSpan  _Reflexes;
+
+    ImTriangulator() : _TrianglesLeft(0), _Nodes(NULL) {}
 };
 
 // Distribute storage for nodes, ears and reflexes.

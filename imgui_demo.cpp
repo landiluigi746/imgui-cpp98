@@ -269,17 +269,19 @@ void*                               GImGuiDemoMarkerCallbackUserData = NULL;
 struct ExampleTreeNode
 {
     // Tree structure
-    char                        Name[28] = "";
-    int                         UID = 0;
-    ExampleTreeNode*            Parent = NULL;
+    char                        Name[28];
+    int                         UID;
+    ExampleTreeNode*            Parent;
     ImVector<ExampleTreeNode*>  Childs;
-    unsigned short              IndexInParent = 0;  // Maintaining this allows us to implement linear traversal more easily
+    unsigned short              IndexInParent;  // Maintaining this allows us to implement linear traversal more easily
 
     // Leaf Data
-    bool                        HasData = false;    // All leaves have data
-    bool                        DataMyBool = true;
-    int                         DataMyInt = 128;
-    ImVec2                      DataMyVec2 = ImVec2(0.0f, 3.141592f);
+    bool                        HasData;    // All leaves have data
+    bool                        DataMyBool;
+    int                         DataMyInt;
+    ImVec2                      DataMyVec2;
+
+    ExampleTreeNode() : Name(""), UID(0), Parent(NULL), IndexInParent(0), HasData(false), DataMyBool(true), DataMyInt(128), DataMyVec2(ImVec2(0.0f, 3.141592f)) {}
 };
 
 // Simple representation of struct metadata/serialization data.
@@ -293,7 +295,7 @@ struct ExampleMemberInfo
 };
 
 // Metadata description of ExampleTreeNode struct.
-static const ExampleMemberInfo ExampleTreeNodeMemberInfos[]
+static const ExampleMemberInfo ExampleTreeNodeMemberInfos[] =
 {
     { "MyBool",     ImGuiDataType_Bool,    1, offsetof(ExampleTreeNode, DataMyBool) },
     { "MyInt",      ImGuiDataType_S32,     1, offsetof(ExampleTreeNode, DataMyInt) },
@@ -362,31 +364,32 @@ static ExampleTreeNode* ExampleTree_CreateDemoTree()
 struct ImGuiDemoWindowData
 {
     // Examples Apps (accessible from the "Examples" menu)
-    bool ShowMainMenuBar = false;
-    bool ShowAppAssetsBrowser = false;
-    bool ShowAppConsole = false;
-    bool ShowAppCustomRendering = false;
-    bool ShowAppDocuments = false;
-    bool ShowAppLog = false;
-    bool ShowAppLayout = false;
-    bool ShowAppPropertyEditor = false;
-    bool ShowAppSimpleOverlay = false;
-    bool ShowAppAutoResize = false;
-    bool ShowAppConstrainedResize = false;
-    bool ShowAppFullscreen = false;
-    bool ShowAppLongText = false;
-    bool ShowAppWindowTitles = false;
+    bool ShowMainMenuBar;
+    bool ShowAppAssetsBrowser;
+    bool ShowAppConsole;
+    bool ShowAppCustomRendering;
+    bool ShowAppDocuments;
+    bool ShowAppLog;
+    bool ShowAppLayout;
+    bool ShowAppPropertyEditor;
+    bool ShowAppSimpleOverlay;
+    bool ShowAppAutoResize;
+    bool ShowAppConstrainedResize;
+    bool ShowAppFullscreen;
+    bool ShowAppLongText;
+    bool ShowAppWindowTitles;
 
     // Dear ImGui Tools (accessible from the "Tools" menu)
-    bool ShowMetrics = false;
-    bool ShowDebugLog = false;
-    bool ShowIDStackTool = false;
-    bool ShowStyleEditor = false;
-    bool ShowAbout = false;
+    bool ShowMetrics;
+    bool ShowDebugLog;
+    bool ShowIDStackTool;
+    bool ShowStyleEditor;
+    bool ShowAbout;
 
     // Other data
-    ExampleTreeNode* DemoTree = NULL;
+    ExampleTreeNode* DemoTree;
 
+    ImGuiDemoWindowData() { memset(this, 0, sizeof(*this)); }
     ~ImGuiDemoWindowData() { if (DemoTree) ExampleTree_DestroyNode(DemoTree); }
 };
 
@@ -764,6 +767,14 @@ static void ShowDemoWindowMenuBar(ImGuiDemoWindowData* demo_data)
         ImGui::EndMenuBar();
     }
 }
+
+// imgui-cpp98 //
+// define C++11 lambdas as static functions here
+static const char* ImGui_DemoWindowWidgets_Combo_Fn(void* data, int n) { return ((const char**)data)[n]; }
+
+static ImGuiID ImGui_DemoWindowWidgets_AdapterIndexToStorage_Fn_1(ImGuiSelectionBasicStorage* self, int idx) { ImGuiID* items = (ImGuiID*)self->UserData; return items[idx]; }
+
+static ImGuiID ImGui_DemoWindowWidgets_AdapterIndexToStorage_Fn_2(ImGuiSelectionBasicStorage* self, int idx) { ImVector<ImGuiID>* p_items = (ImVector<ImGuiID>*)self->UserData; return (*p_items)[idx]; }
 
 //-----------------------------------------------------------------------------
 // [SECTION] ShowDemoWindowWidgets()
@@ -1462,8 +1473,11 @@ static void ShowDemoWindowWidgets(ImGuiDemoWindowData* demo_data)
         ImGui::Combo("combo 3 (array)", &item_current_3, items, IM_ARRAYSIZE(items));
 
         // Simplified one-liner Combo() using an accessor function
+        // imgui-cpp98 //
+        // old lambda
+        // [](void* data, int n) { return ((const char**)data)[n]; }
         static int item_current_4 = 0;
-        ImGui::Combo("combo 4 (function)", &item_current_4, [](void* data, int n) { return ((const char**)data)[n]; }, items, IM_ARRAYSIZE(items));
+        ImGui::Combo("combo 4 (function)", &item_current_4, &ImGui_DemoWindowWidgets_Combo_Fn, items, IM_ARRAYSIZE(items));
 
         ImGui::TreePop();
     }
@@ -3037,7 +3051,9 @@ struct ExampleDualListBox
 {
     ImVector<ImGuiID>           Items[2];               // ID is index into ExampleName[]
     ImGuiSelectionBasicStorage  Selections[2];          // Store ExampleItemId into selection
-    bool                        OptKeepSorted = true;
+    bool                        OptKeepSorted;
+
+    ExampleDualListBox() : OptKeepSorted(true) {}
 
     void MoveAll(int src, int dst)
     {
@@ -3073,7 +3089,9 @@ struct ExampleDualListBox
     {
         // In this example we store item id in selection (instead of item index)
         Selections[side].UserData = Items[side].Data;
-        Selections[side].AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, int idx) { ImGuiID* items = (ImGuiID*)self->UserData; return items[idx]; };
+        // imgui-cpp98 //
+        // old lambda: [](ImGuiSelectionBasicStorage* self, int idx) { ImGuiID* items = (ImGuiID*)self->UserData; return items[idx]; };
+        Selections[side].AdapterIndexToStorageId = &ImGui_DemoWindowWidgets_AdapterIndexToStorage_Fn_1;
         Selections[side].ApplyRequests(ms_io);
     }
     static int IMGUI_CDECL CompareItemsByValue(const void* lhs, const void* rhs)
@@ -3190,6 +3208,10 @@ struct ExampleDualListBox
         }
     }
 };
+
+// imgui-cpp98 //
+// define C++11 lambdas as static functions here
+static void ImGui_DemoMultiSelect_AdapterSetItemSelected(ImGuiSelectionExternalStorage* self, int n, bool selected) { bool* array = (bool*)self->UserData; array[n] = selected; };
 
 //-----------------------------------------------------------------------------
 // [SECTION] ShowDemoWindowMultiSelect()
@@ -3341,7 +3363,9 @@ static void ShowDemoWindowMultiSelect(ImGuiDemoWindowData* demo_data)
             static ImVector<ImGuiID> items;
             static ExampleSelectionWithDeletion selection;
             selection.UserData = (void*)&items;
-            selection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self, int idx) { ImVector<ImGuiID>* p_items = (ImVector<ImGuiID>*)self->UserData; return (*p_items)[idx]; }; // Index -> ID
+            // imgui-cpp98 //
+            // old lambda: [](ImGuiSelectionBasicStorage* self, int idx) { ImVector<ImGuiID>* p_items = (ImVector<ImGuiID>*)self->UserData; return (*p_items)[idx]; }
+            selection.AdapterIndexToStorageId = &ImGui_DemoWindowWidgets_AdapterIndexToStorage_Fn_2; // Index -> ID
 
             ImGui::Text("Added features:");
             ImGui::BulletText("Dynamic list with Delete key support.");
@@ -3474,7 +3498,9 @@ static void ShowDemoWindowMultiSelect(ImGuiDemoWindowData* demo_data)
                 ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(flags, -1, IM_ARRAYSIZE(items));
                 ImGuiSelectionExternalStorage storage_wrapper;
                 storage_wrapper.UserData = (void*)items;
-                storage_wrapper.AdapterSetItemSelected = [](ImGuiSelectionExternalStorage* self, int n, bool selected) { bool* array = (bool*)self->UserData; array[n] = selected; };
+                // imgui-cpp98 //
+                // old lambda: [](ImGuiSelectionExternalStorage* self, int n, bool selected) { bool* array = (bool*)self->UserData; array[n] = selected; };
+                storage_wrapper.AdapterSetItemSelected = &ImGui_DemoMultiSelect_AdapterSetItemSelected;
                 storage_wrapper.ApplyRequests(ms_io);
                 for (int n = 0; n < 20; n++)
                 {
@@ -8952,7 +8978,9 @@ static void ShowExampleAppLayout(bool* p_open)
 struct ExampleAppPropertyEditor
 {
     ImGuiTextFilter     Filter;
-    ExampleTreeNode*    VisibleNode = NULL;
+    ExampleTreeNode*    VisibleNode;
+
+    ExampleAppPropertyEditor() : VisibleNode(NULL) {}
 
     void Draw(ExampleTreeNode* root_node)
     {
@@ -9757,10 +9785,12 @@ struct ExampleAppDocuments
 {
     ImVector<MyDocument>    Documents;
     ImVector<MyDocument*>   CloseQueue;
-    MyDocument*             RenamingDoc = NULL;
-    bool                    RenamingStarted = false;
+    MyDocument*             RenamingDoc;
+    bool                    RenamingStarted;
 
-    ExampleAppDocuments()
+    ExampleAppDocuments() :
+        RenamingDoc(NULL),
+        RenamingStarted(false)
     {
         Documents.push_back(MyDocument(0, "Lettuce",             true,  ImVec4(0.4f, 0.8f, 0.4f, 1.0f)));
         Documents.push_back(MyDocument(1, "Eggplant",            true,  ImVec4(0.8f, 0.5f, 1.0f, 1.0f)));
@@ -10119,37 +10149,45 @@ struct ExampleAsset
 };
 const ImGuiTableSortSpecs* ExampleAsset::s_current_sort_specs = NULL;
 
+// imgui-cpp98 //
+// define C++11 lambdas as static functions here
+// defined after ExampleAssetsBrowser
+static ImGuiID ImGui_Demo_ExampleAssetsBrowser_AdapterIndexToStorage_Fn(ImGuiSelectionBasicStorage* self_, int idx);
+
 struct ExampleAssetsBrowser
 {
     // Options
-    bool            ShowTypeOverlay = true;
-    bool            AllowSorting = true;
-    bool            AllowDragUnselected = false;
-    bool            AllowBoxSelect = true;
-    float           IconSize = 32.0f;
-    int             IconSpacing = 10;
-    int             IconHitSpacing = 4;         // Increase hit-spacing if you want to make it possible to clear or box-select from gaps. Some spacing is required to able to amend with Shift+box-select. Value is small in Explorer.
-    bool            StretchSpacing = true;
+    bool            ShowTypeOverlay;
+    bool            AllowSorting;
+    bool            AllowDragUnselected;
+    bool            AllowBoxSelect;
+    float           IconSize;
+    int             IconSpacing;
+    int             IconHitSpacing;         // Increase hit-spacing if you want to make it possible to clear or box-select from gaps. Some spacing is required to able to amend with Shift+box-select. Value is small in Explorer.
+    bool            StretchSpacing;
 
     // State
     ImVector<ExampleAsset> Items;               // Our items
     ExampleSelectionWithDeletion Selection;     // Our selection (ImGuiSelectionBasicStorage + helper funcs to handle deletion)
-    ImGuiID         NextItemId = 0;             // Unique identifier when creating new items
-    bool            RequestDelete = false;      // Deferred deletion request
-    bool            RequestSort = false;        // Deferred sort request
-    float           ZoomWheelAccum = 0.0f;      // Mouse wheel accumulator to handle smooth wheels better
+    ImGuiID         NextItemId;             // Unique identifier when creating new items
+    bool            RequestDelete;      // Deferred deletion request
+    bool            RequestSort;        // Deferred sort request
+    float           ZoomWheelAccum;      // Mouse wheel accumulator to handle smooth wheels better
 
     // Calculated sizes for layout, output of UpdateLayoutSizes(). Could be locals but our code is simpler this way.
     ImVec2          LayoutItemSize;
     ImVec2          LayoutItemStep;             // == LayoutItemSize + LayoutItemSpacing
-    float           LayoutItemSpacing = 0.0f;
-    float           LayoutSelectableSpacing = 0.0f;
-    float           LayoutOuterPadding = 0.0f;
-    int             LayoutColumnCount = 0;
-    int             LayoutLineCount = 0;
+    float           LayoutItemSpacing;
+    float           LayoutSelectableSpacing;
+    float           LayoutOuterPadding;
+    int             LayoutColumnCount;
+    int             LayoutLineCount;
 
     // Functions
-    ExampleAssetsBrowser()
+    ExampleAssetsBrowser() :
+        ShowTypeOverlay(true), AllowSorting(true), AllowDragUnselected(false), AllowBoxSelect(true), IconSize(32.0f), IconSpacing(10), IconHitSpacing(4), StretchSpacing(true),
+        RequestDelete(false), RequestSort(false), ZoomWheelAccum(0.0f),
+        LayoutItemSpacing(0.0f), LayoutSelectableSpacing(0.0f), LayoutOuterPadding(0.0f), LayoutColumnCount(0), LayoutLineCount(0)
     {
         AddItems(10000);
     }
@@ -10300,7 +10338,9 @@ struct ExampleAssetsBrowser
 
             // Use custom selection adapter: store ID in selection (recommended)
             Selection.UserData = this;
-            Selection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self_, int idx) { ExampleAssetsBrowser* self = (ExampleAssetsBrowser*)self_->UserData; return self->Items[idx].ID; };
+            // imgui-cpp98 //
+            // old lambda: [](ImGuiSelectionBasicStorage* self_, int idx) { ExampleAssetsBrowser* self = (ExampleAssetsBrowser*)self_->UserData; return self->Items[idx].ID; };
+            Selection.AdapterIndexToStorageId = &ImGui_Demo_ExampleAssetsBrowser_AdapterIndexToStorage_Fn;
             Selection.ApplyRequests(ms_io);
 
             const bool want_delete = (ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat) && (Selection.Size > 0)) || RequestDelete;
@@ -10463,6 +10503,8 @@ struct ExampleAssetsBrowser
         ImGui::End();
     }
 };
+
+static ImGuiID ImGui_Demo_ExampleAssetsBrowser_AdapterIndexToStorage_Fn(ImGuiSelectionBasicStorage* self_, int idx) { ExampleAssetsBrowser* self = (ExampleAssetsBrowser*)self_->UserData; return self->Items[idx].ID; }
 
 void ShowExampleAppAssetsBrowser(bool* p_open)
 {

@@ -8055,12 +8055,18 @@ void ImGui::DebugNodeMultiSelectState(ImGuiMultiSelectState* storage)
 // - ImGuiSelectionExternalStorage
 //-------------------------------------------------------------------------
 
+// imgui-cpp98 //
+// define C++11 lambdas as static functions here
+static ImGuiID ImGui_Widgets_AdapterIndexToStorageId(ImGuiSelectionBasicStorage* _, int idx) { return (ImGuiID)idx; }
+
 ImGuiSelectionBasicStorage::ImGuiSelectionBasicStorage()
 {
     Size = 0;
     PreserveOrder = false;
     UserData = NULL;
-    AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage*, int idx) { return (ImGuiID)idx; };
+    // imgui-cpp98 //
+    // old lambda: [](ImGuiSelectionBasicStorage* self, int idx) { return (ImGuiID)idx; };
+    AdapterIndexToStorageId = &ImGui_Widgets_AdapterIndexToStorageId;
     _SelectionOrder = 1; // Always >0
 }
 

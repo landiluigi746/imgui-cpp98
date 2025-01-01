@@ -921,13 +921,15 @@ struct ImChunkStream
 struct ImGuiTextIndex
 {
     ImVector<int>   LineOffsets;
-    int             EndOffset = 0;                          // Because we don't own text buffer we need to maintain EndOffset (may bake in LineOffsets?)
+    int             EndOffset;                          // Because we don't own text buffer we need to maintain EndOffset (may bake in LineOffsets?)
 
     void            clear()                                 { LineOffsets.clear(); EndOffset = 0; }
     int             size()                                  { return LineOffsets.Size; }
     const char*     get_line_begin(const char* base, int n) { return base + LineOffsets[n]; }
     const char*     get_line_end(const char* base, int n)   { return base + (n + 1 < LineOffsets.Size ? (LineOffsets[n + 1] - 1) : EndOffset); }
     void            append(const char* base, int old_size, int new_size);
+
+    ImGuiTextIndex() : EndOffset(0) {}
 };
 
 // Helper: ImGuiStorage
@@ -1660,11 +1662,11 @@ struct IMGUI_API ImGuiTypingSelectState
     ImGuiTypingSelectRequest Request;           // User-facing data
     char            SearchBuffer[64];           // Search buffer: no need to make dynamic as this search is very transient.
     ImGuiID         FocusScope;
-    int             LastRequestFrame = 0;
-    float           LastRequestTime = 0.0f;
-    bool            SingleCharModeLock = false; // After a certain single char repeat count we lock into SingleCharMode. Two benefits: 1) buffer never fill, 2) we can provide an immediate SingleChar mode without timer elapsing.
+    int             LastRequestFrame;
+    float           LastRequestTime;
+    bool            SingleCharModeLock;         // After a certain single char repeat count we lock into SingleCharMode. Two benefits: 1) buffer never fill, 2) we can provide an immediate SingleChar mode without timer elapsing.
 
-    ImGuiTypingSelectState() { memset(this, 0, sizeof(*this)); }
+    ImGuiTypingSelectState() : LastRequestFrame(0), LastRequestTime(0.0f), SingleCharModeLock(false) { memset(this, 0, sizeof(*this)); }
     void            Clear()  { SearchBuffer[0] = 0; SingleCharModeLock = false; } // We preserve remaining data for easier debugging
 };
 
@@ -1966,19 +1968,21 @@ struct ImGuiDebugAllocInfo
 
 struct ImGuiMetricsConfig
 {
-    bool        ShowDebugLog = false;
-    bool        ShowIDStackTool = false;
-    bool        ShowWindowsRects = false;
-    bool        ShowWindowsBeginOrder = false;
-    bool        ShowTablesRects = false;
-    bool        ShowDrawCmdMesh = true;
-    bool        ShowDrawCmdBoundingBoxes = true;
-    bool        ShowTextEncodingViewer = false;
-    bool        ShowAtlasTintedWithTextColor = false;
-    int         ShowWindowsRectsType = -1;
-    int         ShowTablesRectsType = -1;
-    int         HighlightMonitorIdx = -1;
-    ImGuiID     HighlightViewportID = 0;
+    bool        ShowDebugLog;
+    bool        ShowIDStackTool;
+    bool        ShowWindowsRects;
+    bool        ShowWindowsBeginOrder;
+    bool        ShowTablesRects;
+    bool        ShowDrawCmdMesh;
+    bool        ShowDrawCmdBoundingBoxes;
+    bool        ShowTextEncodingViewer;
+    bool        ShowAtlasTintedWithTextColor;
+    int         ShowWindowsRectsType;
+    int         ShowTablesRectsType;
+    int         HighlightMonitorIdx;
+    ImGuiID     HighlightViewportID;
+
+    ImGuiMetricsConfig() : ShowDebugLog(false), ShowIDStackTool(false), ShowWindowsRects(false), ShowWindowsBeginOrder(false), ShowTablesRects(false), ShowDrawCmdMesh(true), ShowDrawCmdBoundingBoxes(true), ShowTextEncodingViewer(false), ShowAtlasTintedWithTextColor(false), ShowWindowsRectsType(-1), ShowTablesRectsType(-1), HighlightMonitorIdx(-1), HighlightViewportID(0) {}
 };
 
 struct ImGuiStackLevelInfo

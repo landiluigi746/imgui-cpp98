@@ -10432,6 +10432,11 @@ void ImGui::ErrorCheckUsingSetCursorPosToExtendParentBoundaries()
 #endif
 }
 
+// imgui-cpp98 //
+// have to remove lambdas and define static functions here
+static const char* ImGui_IOPlatform_GetClipboardTextFn(ImGuiContext* ctx) { return ctx->IO.GetClipboardTextFn(ctx->IO.ClipboardUserData); }
+static void ImGui_IOPlatform_SetClipboardTextFn(ImGuiContext* ctx, const char* text) { ctx->IO.SetClipboardTextFn(ctx->IO.ClipboardUserData, text); }
+
 static void ImGui::ErrorCheckNewFrameSanityChecks()
 {
     ImGuiContext& g = *GImGui;
@@ -10484,9 +10489,14 @@ static void ImGui::ErrorCheckNewFrameSanityChecks()
 
     // Remap legacy clipboard handlers (OBSOLETED in 1.91.1, August 2024)
     if (g.IO.GetClipboardTextFn != NULL && (g.PlatformIO.Platform_GetClipboardTextFn == NULL || g.PlatformIO.Platform_GetClipboardTextFn == Platform_GetClipboardTextFn_DefaultImpl))
-        g.PlatformIO.Platform_GetClipboardTextFn = [](ImGuiContext* ctx) { return ctx->IO.GetClipboardTextFn(ctx->IO.ClipboardUserData); };
+        g.PlatformIO.Platform_GetClipboardTextFn = &ImGui_IOPlatform_GetClipboardTextFn;
     if (g.IO.SetClipboardTextFn != NULL && (g.PlatformIO.Platform_SetClipboardTextFn == NULL || g.PlatformIO.Platform_SetClipboardTextFn == Platform_SetClipboardTextFn_DefaultImpl))
-        g.PlatformIO.Platform_SetClipboardTextFn = [](ImGuiContext* ctx, const char* text) { return ctx->IO.SetClipboardTextFn(ctx->IO.ClipboardUserData, text); };
+        g.PlatformIO.Platform_SetClipboardTextFn = &ImGui_IOPlatform_SetClipboardTextFn;
+        
+    // imgui-cpp98 //
+    // old lambdas
+    // g.PlatformIO.Platform_GetClipboardTextFn = [](ImGuiContext* ctx) { return ctx->IO.GetClipboardTextFn(ctx->IO.ClipboardUserData); };
+    // g.PlatformIO.Platform_SetClipboardTextFn = [](ImGuiContext* ctx, const char* text) { return ctx->IO.SetClipboardTextFn(ctx->IO.ClipboardUserData, text); };
 #endif
 }
 

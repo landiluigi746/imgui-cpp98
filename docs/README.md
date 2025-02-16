@@ -1,3 +1,5 @@
+## Warning: This is a modified version of [Dear ImGui](https://github.com/ocornut/imgui) made to support C++98 and CMake
+
 Dear ImGui
 =====
 
